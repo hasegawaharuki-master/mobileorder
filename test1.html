@@ -7,63 +7,12 @@
     <!-- Firebase SDKを読み込み -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-analytics.js"></script>
 </head>
 <body>
     <h2>メニュー選択</h2>
-    <!-- チェックボックスとラベル<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>選択したメニューの確認</title>
-</head>
-<body>
-    <h2>選択したメニューの確認</h2>
-    
-    <!-- パスワード入力フォーム -->
-    <label for="password">パスワードを入力してください:</label>
-    <input type="password" id="password">
-    <button onclick="verifyPassword()">確認</button>
-    
-    <!-- 選択結果を表示するエリア -->
-    <div id="result" style="display: none;"></div>
 
-    <script>
-        // 正しいパスワードを設定
-        const correctPassword = "1234";  // 好きなパスワードを設定
-
-        function verifyPassword() {
-            const enteredPassword = document.getElementById('password').value;
-            
-            if (enteredPassword === correctPassword) {
-                showOrderHistory();
-            } else {
-                alert("パスワードが間違っています。");
-            }
-        }
-
-        function showOrderHistory() {
-            // localStorageから注文履歴を取得
-            const orderHistory = JSON.parse(localStorage.getItem('orderHistory'));
-            const result = document.getElementById('result');
-            
-            if (orderHistory && orderHistory.length > 0) {
-                result.style.display = "block";
-                result.innerHTML = "<h3>注文履歴:</h3>";
-                
-                orderHistory.forEach((order, index) => {
-                    result.innerHTML += `<p><strong>注文 ${index + 1} (${order.date})</strong><br>メニュー: <br>${order.items.join("<br>")}<br>合計金額: ¥${order.total}</p><hr>`;
-                });
-            } else {
-                result.innerText = "注文履歴がありません";
-            }
-        }
-    </script>
-</body>
-<a href="test.html">もう一度注文</a>
-
-<a href="paypay::/">ペイペイ</a>
-</html> -->
+    <!-- チェックボックスとラベル -->
     <label>
         <input type="checkbox" name="menu" value="1000" data-name="ハンバーグ">
         ハンバーグ (¥1000)
@@ -83,21 +32,22 @@
     <button onclick="saveSelection()">注文を確定</button>
 
     <script>
-        // Firebaseの設定情報（正しい値を貼り付け）
+        // Firebaseの設定情報
         const firebaseConfig = {
-            apiKey: "API_KEY",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://PROJECT_ID.firebaseio.com",
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID",
-            measurementId: "G-MEASUREMENT_ID"
+            apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
+            authDomain: "test2-802ce.firebaseapp.com",
+            databaseURL: "https://test2-802ce-default-rtdb.firebaseio.com",
+            projectId: "test2-802ce",
+            storageBucket: "test2-802ce.appspot.com",
+            messagingSenderId: "624514936023",
+            appId: "1:624514936023:web:cbbd8f7a89450b86e8d492",
+            measurementId: "G-5H39DWSK3Y"
         };
 
         // Firebase初期化
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const analytics = firebase.analytics();
 
         function saveSelection() {
             const checkboxes = document.querySelectorAll('input[name="menu"]');
@@ -122,8 +72,7 @@
                 database.ref('orders').push(orderData)
                     .then(() => {
                         alert("注文が確定しました！");
-                        // データ保存後に `test3.html` に移動
-                        window.location.href = 'https://hasegawaharuki-master.github.io/test1/index.html';
+                        window.location.href = 'https://drmstpk.github.io/test1/index.html';
                     })
                     .catch((error) => {
                         console.error("注文の保存中にエラーが発生しました: ", error);
@@ -134,5 +83,57 @@
             }
         }
     </script>
+
+    <!-- 注文履歴ページ -->
+    <h2>選択したメニューの確認</h2>
+    <!-- パスワード入力フォーム -->
+    <label for="password">パスワードを入力してください:</label>
+    <input type="password" id="password">
+    <button onclick="verifyPassword()">確認</button>
+
+    <!-- 選択結果を表示するエリア -->
+    <div id="result" style="display: none;"></div>
+
+    <script>
+        // 正しいパスワードを設定
+        const correctPassword = "1234";  // 好きなパスワードを設定
+
+        function verifyPassword() {
+            const enteredPassword = document.getElementById('password').value;
+            
+            if (enteredPassword === correctPassword) {
+                showOrderHistory();
+            } else {
+                alert("パスワードが間違っています。");
+            }
+        }
+
+        function showOrderHistory() {
+            // Firebaseから注文履歴を取得
+            const result = document.getElementById('result');
+
+            database.ref('orders').get().then((snapshot) => {
+                if (snapshot.exists()) {
+                    result.style.display = "block";
+                    result.innerHTML = "<h3>注文履歴:</h3>";
+                    
+                    const orders = snapshot.val();
+                    let index = 1;
+                    for (let id in orders) {
+                        const order = orders[id];
+                        result.innerHTML += `<p><strong>注文 ${index} (${order.date})</strong><br>メニュー: <br>${order.items.join("<br>")}<br>合計金額: ¥${order.total}</p><hr>`;
+                        index++;
+                    }
+                } else {
+                    result.innerText = "注文履歴がありません";
+                }
+            }).catch((error) => {
+                console.error("注文履歴の取得中にエラーが発生しました: ", error);
+                result.innerText = "注文履歴の取得に失敗しました";
+            });
+        }
+    </script>
+    <a href="test.html">もう一度注文</a>
+    <a href="paypay::/">ペイペイ</a>
 </body>
 </html>

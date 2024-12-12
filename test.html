@@ -4,6 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メニュー選択</title>
+    <style>
+        #menuContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: flex-start;
+        }
+        .menu-item {
+            width: 200px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item img {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        #adminLogin {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        #selectedItems {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, push, set, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -27,6 +60,7 @@
             const adminSection = document.getElementById('adminSection');
             const passwordInput = document.getElementById('adminPassword');
             const loginButton = document.getElementById('loginButton');
+            const selectedItemsContainer = document.getElementById('selectedItems');
 
             // ページロード時にメニューを読み込む
             const menusRef = ref(database, 'menus');
@@ -59,27 +93,25 @@
 
                 checkboxes.forEach((checkbox) => {
                     if (checkbox.checked) {
-                        selectedItems.push(checkbox.getAttribute("data-name") + " (¥" + checkbox.value + ")");
-                        totalPrice += parseInt(checkbox.value, 10);
+                        const name = checkbox.getAttribute("data-name");
+                        const price = parseInt(checkbox.value, 10);
+                        const existingItem = selectedItems.find(item => item.name === name);
+                        if (existingItem) {
+                            existingItem.quantity++;
+                            existingItem.totalPrice += price;
+                        } else {
+                            selectedItems.push({ name, price, quantity: 1, totalPrice: price });
+                        }
+                        totalPrice += price;
                     }
                 });
 
                 if (selectedItems.length > 0) {
-                    const orderData = {
-                        items: selectedItems,
-                        total: totalPrice,
-                        date: new Date().toLocaleString()
-                    };
-
-                    const ordersRef = ref(database, 'orders');
-                    push(ordersRef, orderData)
-                        .then(() => {
-                            alert("注文が確定しました！");
-                        })
-                        .catch((error) => {
-                            console.error("注文の保存中にエラーが発生しました: ", error);
-                            alert("注文の保存に失敗しました。もう一度お試しください。");
-                        });
+                    selectedItemsContainer.innerHTML = `<h3>選択された商品</h3>`;
+                    selectedItems.forEach(item => {
+                        selectedItemsContainer.innerHTML += `<p>${item.name} - ¥${item.price} x ${item.quantity} = ¥${item.totalPrice}</p>`;
+                    });
+                    selectedItemsContainer.innerHTML += `<hr><p><strong>合計金額: ¥${totalPrice}</strong></p>`;
                 } else {
                     alert("メニューを選択してください");
                 }
@@ -113,7 +145,16 @@
             });
 
             function addMenuToPage(name, price, image, id, isAdmin) {
-                const newLabel = document.createElement('label');
+                const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+
+                const menuImageElement = document.createElement('img');
+                menuImageElement.src = image;
+                menuImageElement.alt = name;
+
+                const menuDetails = document.createElement('div');
+                menuDetails.innerHTML = `<strong>${name}</strong><br>¥${price}`;
+
                 const newCheckbox = document.createElement('input');
                 newCheckbox.type = 'checkbox';
                 newCheckbox.name = 'menu';
@@ -128,51 +169,45 @@
                 deleteButton.addEventListener('click', function () {
                     const menuRef = ref(database, `menus/${id}`);
                     set(menuRef, null).then(() => {
-                        menuContainer.removeChild(newLabel);
+                        menuContainer.removeChild(menuItem);
                     }).catch((error) => {
                         console.error("メニューの削除中にエラーが発生しました: ", error);
                     });
                 });
 
-                const menuImageElement = document.createElement('img');
-                menuImageElement.src = image;
-                menuImageElement.alt = name;
-                menuImageElement.style.width = '50px';
-                menuImageElement.style.height = '50px';
-                menuImageElement.style.marginRight = '10px';
-
-                newLabel.appendChild(menuImageElement);
-                newLabel.appendChild(newCheckbox);
-                newLabel.appendChild(document.createTextNode(`${name} (¥${price})`));
-                newLabel.appendChild(deleteButton);
-                menuContainer.appendChild(newLabel);
-                menuContainer.appendChild(document.createElement('br'));
+                menuItem.appendChild(menuImageElement);
+                menuItem.appendChild(menuDetails);
+                menuItem.appendChild(newCheckbox);
+                menuItem.appendChild(deleteButton);
+                menuContainer.appendChild(menuItem);
             }
         });
     </script>
 </head>
 <body>
-    <h2>メニュー選択</h2>
-
-    <div>
+    <div id="adminLogin">
         <input type="password" id="adminPassword" placeholder="管理者パスワード">
         <button id="loginButton">ログイン</button>
     </div>
+
+    <h2>メニュー選択</h2>
 
     <div id="adminSection" style="display: none;">
         <h3>管理者用メニュー管理</h3>
         <input type="text" id="menuName" placeholder="商品名">
         <input type="number" id="menuPrice" placeholder="値段">
         <input type="text" id="menuImage" placeholder="画像URL">
-        <button id="addMenuButton">メニューを追加</button>
-    </div>
+         <button id="addMenuButton">メニューを追加</button>
+            </div>
 
-    <div id="menuContainer">
-        <!-- ここに動的にチェックボックスと画像が追加されます -->
-    </div>
+            <div id="menuContainer">
+                <!-- ここに動的にメニューが追加されます -->
+            </div>
 
-    <br>
+            <div id="selectedItems">
+                <!-- 選択された商品がここに表示されます -->
+            </div>
 
-    <a href="paypay::/"><button id="orderButton">注文を確定</button></a>
-</body>
-</html>
+            <button id="orderButton">注文を確定</button>
+        </body>
+    </html>

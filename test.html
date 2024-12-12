@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メニュー選択</title>
+    <style>
+        /* 管理者パスワード欄を目立たなくする */
+        #adminLogin {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #selectedItems {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #selectedItems h3 {
+            margin-top: 0;
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, push, set, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -27,6 +51,9 @@
             const adminSection = document.getElementById('adminSection');
             const passwordInput = document.getElementById('adminPassword');
             const loginButton = document.getElementById('loginButton');
+            const selectedItemsContainer = document.getElementById('selectedItems');
+
+            let selectedItems = {};
 
             // ページロード時にメニューを読み込む
             const menusRef = ref(database, 'menus');
@@ -54,19 +81,19 @@
 
             document.getElementById('orderButton').addEventListener('click', function () {
                 const checkboxes = document.querySelectorAll('input[name="menu"]');
-                let selectedItems = [];
+                let totalItems = [];
                 let totalPrice = 0;
 
-                checkboxes.forEach((checkbox) => {
-                    if (checkbox.checked) {
-                        selectedItems.push(checkbox.getAttribute("data-name") + " (¥" + checkbox.value + ")");
-                        totalPrice += parseInt(checkbox.value, 10);
+                for (let key in selectedItems) {
+                    if (selectedItems[key].count > 0) {
+                        totalItems.push(`${selectedItems[key].name} x${selectedItems[key].count} (¥${selectedItems[key].price})`);
+                        totalPrice += selectedItems[key].count * selectedItems[key].price;
                     }
-                });
+                }
 
-                if (selectedItems.length > 0) {
+                if (totalItems.length > 0) {
                     const orderData = {
-                        items: selectedItems,
+                        items: totalItems,
                         total: totalPrice,
                         date: new Date().toLocaleString()
                     };
@@ -85,32 +112,22 @@
                 }
             });
 
-            document.getElementById('addMenuButton').addEventListener('click', function () {
-                const menuName = document.getElementById('menuName').value;
-                const menuPrice = document.getElementById('menuPrice').value;
-                const menuImage = document.getElementById('menuImage').value;
+            function updateSelectedItems() {
+                let totalQuantity = 0;
+                let totalPrice = 0;
+                selectedItemsContainer.innerHTML = '<h3>選択された商品</h3>';
 
-                if (menuName && menuPrice && menuImage) {
-                    const newMenuRef = push(ref(database, 'menus'));
-                    const menuData = {
-                        name: menuName,
-                        price: menuPrice,
-                        image: menuImage
-                    };
-
-                    set(newMenuRef, menuData).then(() => {
-                        addMenuToPage(menuName, menuPrice, menuImage, newMenuRef.key, true);
-                        document.getElementById('menuName').value = '';
-                        document.getElementById('menuPrice').value = '';
-                        document.getElementById('menuImage').value = '';
-                    }).catch((error) => {
-                        console.error("メニューの保存中にエラーが発生しました: ", error);
-                        alert("メニューの保存に失敗しました。もう一度お試しください。");
-                    });
-                } else {
-                    alert("商品名、値段、画像URLを入力してください");
+                for (let key in selectedItems) {
+                    if (selectedItems[key].count > 0) {
+                        const item = selectedItems[key];
+                        totalQuantity += item.count;
+                        totalPrice += item.count * item.price;
+                        selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
+                    }
                 }
-            });
+
+                selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
+            }
 
             function addMenuToPage(name, price, image, id, isAdmin) {
                 const newLabel = document.createElement('label');
@@ -119,6 +136,19 @@
                 newCheckbox.name = 'menu';
                 newCheckbox.value = price;
                 newCheckbox.setAttribute('data-name', name);
+
+                newCheckbox.addEventListener('change', function () {
+                    if (!selectedItems[id]) {
+                        selectedItems[id] = { name, price: parseInt(price, 10), count: 0 };
+                    }
+
+                    if (newCheckbox.checked) {
+                        selectedItems[id].count += 1;
+                    } else {
+                        selectedItems[id].count = Math.max(0, selectedItems[id].count - 1);
+                    }
+                    updateSelectedItems();
+                });
 
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = '削除';
@@ -154,7 +184,7 @@
 <body>
     <h2>メニュー選択</h2>
 
-    <div>
+    <div id="adminLogin">
         <input type="password" id="adminPassword" placeholder="管理者パスワード">
         <button id="loginButton">ログイン</button>
     </div>
@@ -165,14 +195,19 @@
         <input type="number" id="menuPrice" placeholder="値段">
         <input type="text" id="menuImage" placeholder="画像URL">
         <button id="addMenuButton">メニューを追加</button>
+           <div id="menuContainer">
+            <!-- メニュー項目が動的に追加されます -->
+        </div>
     </div>
 
-    <div id="menuContainer">
-        <!-- ここに動的にチェックボックスと画像が追加されます -->
+    <div id="selectedItems">
+        <h3>選択された商品</h3>
+        <!-- 選択内容が動的に表示されます -->
     </div>
 
     <br>
 
-    <a href="paypay::/"><button id="orderButton">注文を確定</button></a>
+    <button id="orderButton">注文を確定</button>
 </body>
 </html>
+

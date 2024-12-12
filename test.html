@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メニュー選択</title>
-    <!-- Firebase SDKをインポート -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        // Firebaseの設定情報
         const firebaseConfig = {
             apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
             authDomain: "test2-802ce.firebaseapp.com",
@@ -21,11 +19,9 @@
             measurementId: "G-5H39DWSK3Y"
         };
 
-        // Firebaseの初期化
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // 注文確定ボタンのイベントリスナー
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('orderButton').addEventListener('click', function () {
                 const checkboxes = document.querySelectorAll('input[name="menu"]');
@@ -46,7 +42,6 @@
                         date: new Date().toLocaleString()
                     };
 
-                    // Firebase Realtime Databaseに注文を保存
                     const ordersRef = ref(database, 'orders');
                     push(ordersRef, orderData)
                         .then(() => {
@@ -61,13 +56,12 @@
                 }
             });
 
-            // メニュー追加ボタンのイベントリスナー
             document.getElementById('addMenuButton').addEventListener('click', function () {
                 const menuName = document.getElementById('menuName').value;
                 const menuPrice = document.getElementById('menuPrice').value;
+                const menuImage = document.getElementById('menuImage').value;
 
-                // 商品名と値段が空でないことを確認
-                if (menuName && menuPrice) {
+                if (menuName && menuPrice && menuImage) {
                     const menuContainer = document.getElementById('menuContainer');
                     const newLabel = document.createElement('label');
                     const newCheckbox = document.createElement('input');
@@ -76,7 +70,6 @@
                     newCheckbox.value = menuPrice;
                     newCheckbox.setAttribute('data-name', menuName);
 
-                    // 削除ボタンを作成
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = '削除';
                     deleteButton.type = 'button';
@@ -85,18 +78,25 @@
                         menuContainer.removeChild(newLabel);
                     });
 
-                    // ラベルにチェックボックスと削除ボタンを追加
+                    const menuImageElement = document.createElement('img');
+                    menuImageElement.src = menuImage;
+                    menuImageElement.alt = menuName;
+                    menuImageElement.style.width = '50px';
+                    menuImageElement.style.height = '50px';
+                    menuImageElement.style.marginRight = '10px';
+
+                    newLabel.appendChild(menuImageElement);
                     newLabel.appendChild(newCheckbox);
                     newLabel.appendChild(document.createTextNode(`${menuName} (¥${menuPrice})`));
                     newLabel.appendChild(deleteButton);
                     menuContainer.appendChild(newLabel);
                     menuContainer.appendChild(document.createElement('br'));
 
-                    // 入力フォームをクリア
                     document.getElementById('menuName').value = '';
                     document.getElementById('menuPrice').value = '';
+                    document.getElementById('menuImage').value = '';
                 } else {
-                    alert("商品名と値段を入力してください");
+                    alert("商品名、値段、画像URLを入力してください");
                 }
             });
         });
@@ -105,16 +105,15 @@
 <body>
     <h2>メニュー選択</h2>
 
-    <!-- メニュー追加フォーム -->
     <div>
         <input type="text" id="menuName" placeholder="商品名">
         <input type="number" id="menuPrice" placeholder="値段">
+        <input type="text" id="menuImage" placeholder="画像URL">
         <button id="addMenuButton">メニューを追加</button>
     </div>
 
-    <!-- チェックボックスを追加するためのコンテナ -->
     <div id="menuContainer">
-        <!-- ここに動的にチェックボックスが追加されます -->
+        <!-- ここに動的にチェックボックスと画像が追加されます -->
     </div>
 
     <br>

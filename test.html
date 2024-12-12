@@ -74,6 +74,18 @@
                 if (password === 'admin123') { // 管理者用パスワード
                     adminSection.style.display = 'block';
                     passwordInput.value = '';
+
+                    // 管理者向けに再読み込みして削除ボタンを有効化
+                    get(menusRef).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const menus = snapshot.val();
+                            menuContainer.innerHTML = ''; // コンテナをクリア
+                            for (let id in menus) {
+                                const menu = menus[id];
+                                addMenuToPage(menu.name, menu.price, menu.image, id, true);
+                            }
+                        }
+                    });
                 } else {
                     alert('パスワードが間違っています。');
                 }
@@ -195,9 +207,10 @@
         <input type="number" id="menuPrice" placeholder="値段">
         <input type="text" id="menuImage" placeholder="画像URL">
         <button id="addMenuButton">メニューを追加</button>
-           <div id="menuContainer">
-            <!-- メニュー項目が動的に追加されます -->
-        </div>
+    </div>
+
+    <div id="menuContainer">
+        <!-- メニュー項目が動的に追加されます -->
     </div>
 
     <div id="selectedItems">
@@ -210,4 +223,3 @@
     <button id="orderButton">注文を確定</button>
 </body>
 </html>
-

@@ -64,6 +64,18 @@
             flex-wrap: wrap;
             justify-content: center;
         }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .quantity-controls button {
+            width: 25px;
+            height: 25px;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -101,7 +113,7 @@
                     const menus = snapshot.val();
                     for (let id in menus) {
                         const menu = menus[id];
-                        addMenuToCategory(menu.category, menu.name, menu.price, menu.image, id, false);
+                        addMenuToCategory(menu.category, menu.name, menu.price, menu.image, id, menu.tax, false);
                     }
                 }
             }).catch((error) => {
@@ -122,7 +134,7 @@
                             otherContainer.innerHTML = '';
                             for (let id in menus) {
                                 const menu = menus[id];
-                                addMenuToCategory(menu.category, menu.name, menu.price, menu.image, id, true);
+                                addMenuToCategory(menu.category, menu.name, menu.price, menu.image, id, menu.tax, true);
                             }
                         }
                     });
@@ -133,16 +145,18 @@
 
             document.getElementById('addMenuButton').addEventListener('click', function () {
                 const menuName = document.getElementById('menuName').value;
-                const menuPrice = document.getElementById('menuPrice').value;
+                const menuPrice = parseInt(document.getElementById('menuPrice').value, 10);
                 const menuImage = document.getElementById('menuImage').value;
                 const menuCategory = document.getElementById('menuCategory').value;
+                const menuTax = document.querySelector('input[name="menuTax"]:checked').value;
 
                 if (menuName && menuPrice && menuImage && menuCategory) {
+                    const priceWithTax = menuTax === '10' ? Math.round(menuPrice * 1.1) : Math.round(menuPrice * 1.08);
                     const newMenuRef = push(menusRef);
-                    const menuData = { name: menuName, price: menuPrice, image: menuImage, category: menuCategory };
+                    const menuData = { name: menuName, price: priceWithTax, image: menuImage, category: menuCategory, tax: menuTax };
 
                     set(newMenuRef, menuData).then(() => {
-                        addMenuToCategory(menuCategory, menuName, menuPrice, menuImage, newMenuRef.key, true);
+                        addMenuToCategory(menuCategory, menuName, priceWithTax, menuImage, newMenuRef.key, menuTax, true);
                         document.getElementById('menuName').value = '';
                         document.getElementById('menuPrice').value = '';
                         document.getElementById('menuImage').value = '';
@@ -190,8 +204,8 @@
                 }
             });
 
-            function addMenuToCategory(category, name, price, image, id, isAdmin) {
-                const container = category === 'フード' ? foodContainer : category === 'ドリンク' ? drinkContainer : otherContainer;
+            function addMenuToCategory(category, name, price, image, id, tax, isAdmin) {
+                const container = category=== 'フード' ? foodContainer : category === 'ドリンク' ? drinkContainer : otherContainer;
                 const menuItem = document.createElement('div');
                 menuItem.classList.add('menu-item');
 
@@ -203,26 +217,37 @@
                 menuNameElement.textContent = name;
 
                 const menuPriceElement = document.createElement('p');
-                menuPriceElement.textContent = `¥${price}`;
+                menuPriceElement.textContent = `¥${price} (${tax}%)`;
 
-                const newCheckbox = document.createElement('input');
-                newCheckbox.type = 'checkbox';
-                newCheckbox.name = 'menu';
-                newCheckbox.value = price;
-                newCheckbox.setAttribute('data-name', name);
+                const quantityControls = document.createElement('div');
+                quantityControls.classList.add('quantity-controls');
 
-                newCheckbox.addEventListener('change', function () {
+                const minusButton = document.createElement('button');
+                minusButton.textContent = '-';
+                minusButton.addEventListener('click', function () {
                     if (!selectedItems[id]) {
-                        selectedItems[id] = { name, price: parseInt(price, 10), count: 0 };
+                        selectedItems[id] = { name, price, count: 0 };
                     }
-
-                    if (newCheckbox.checked) {
-                        selectedItems[id].count += 1;
-                    } else {
-                        selectedItems[id].count = Math.max(0, selectedItems[id].count - 1);
-                    }
+                    selectedItems[id].count = Math.max(0, selectedItems[id].count - 1);
                     updateSelectedItems();
                 });
+
+                const quantityDisplay = document.createElement('span');
+                quantityDisplay.textContent = '0';
+
+                const plusButton = document.createElement('button');
+                plusButton.textContent = '+';
+                plusButton.addEventListener('click', function () {
+                    if (!selectedItems[id]) {
+                        selectedItems[id] = { name, price, count: 0 };
+                    }
+                    selectedItems[id].count += 1;
+                    updateSelectedItems();
+                });
+
+                quantityControls.appendChild(minusButton);
+                quantityControls.appendChild(quantityDisplay);
+                quantityControls.appendChild(plusButton);
 
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = '削除';
@@ -240,27 +265,30 @@
                 menuItem.appendChild(menuImageElement);
                 menuItem.appendChild(menuNameElement);
                 menuItem.appendChild(menuPriceElement);
-                menuItem.appendChild(newCheckbox);
+                menuItem.appendChild(quantityControls);
                 menuItem.appendChild(deleteButton);
 
                 container.appendChild(menuItem);
-            }
 
-            function updateSelectedItems() {
-                let totalQuantity = 0;
-                let totalPrice = 0;
-                selectedItemsContainer.innerHTML = '<h3>選択された商品</h3>';
+                function updateSelectedItems() {
+                    let totalQuantity = 0;
+                    let totalPrice = 0;
+                    selectedItemsContainer.innerHTML = '<h3>選択された商品</h3>';
 
-                for (let key in selectedItems) {
-                    if (selectedItems[key].count > 0) {
-                        const item = selectedItems[key];
-                        totalQuantity += item.count;
-                        totalPrice += item.count * item.price;
-                        selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
+                    for (let key in selectedItems) {
+                        if (selectedItems[key].count > 0) {
+                            const item = selectedItems[key];
+                            totalQuantity += item.count;
+                            totalPrice += item.count * item.price;
+                            selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
+                        }
                     }
-                }
 
-                selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
+                    selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
+
+                    // Update quantity display
+                    quantityDisplay.textContent = selectedItems[id] ? selectedItems[id].count : '0';
+                }
             }
         });
     </script>
@@ -283,6 +311,10 @@
             <option value="ドリンク">ドリンク</option>
             <option value="その他">その他</option>
         </select>
+        <div>
+            <label><input type="radio" name="menuTax" value="8" checked> 8% 消費税</label>
+            <label><input type="radio" name="menuTax" value="10"> 10% 消費税</label>
+        </div>
         <button id="addMenuButton">メニューを追加</button>
     </div>
 

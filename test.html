@@ -133,6 +133,40 @@
                 }
             });
 
+            document.getElementById('orderButton').addEventListener('click', function () {
+                let orderItems = [];
+                let totalPrice = 0;
+
+                for (let key in selectedItems) {
+                    if (selectedItems[key].count > 0) {
+                        const item = selectedItems[key];
+                        orderItems.push({ name: item.name, price: item.price, count: item.count });
+                        totalPrice += item.count * item.price;
+                    }
+                }
+
+                if (orderItems.length > 0) {
+                    const orderData = {
+                        items: orderItems,
+                        total: totalPrice,
+                        date: new Date().toLocaleString()
+                    };
+
+                    const ordersRef = ref(database, 'orders');
+                    push(ordersRef, orderData)
+                        .then(() => {
+                            alert("注文が確定しました！PayPayに移動します。");
+                            window.location.href = "paypay://pay?amount=" + totalPrice;
+                        })
+                        .catch((error) => {
+                            console.error("注文の保存中にエラーが発生しました: ", error);
+                            alert("注文の保存に失敗しました。もう一度お試しください。");
+                        });
+                } else {
+                    alert("メニューを選択してください。");
+                }
+            });
+
             function updateSelectedItems() {
                 let totalQuantity = 0;
                 let totalPrice = 0;

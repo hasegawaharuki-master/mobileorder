@@ -27,6 +27,25 @@
         #selectedItems h3 {
             margin-top: 0;
         }
+
+        .menu-item {
+            display: inline-block;
+            text-align: center;
+            margin: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 150px;
+            background-color: #f9f9f9;
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: auto;
+        }
+
+        .menu-item input {
+            margin-top: 10px;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -91,36 +110,26 @@
                 }
             });
 
-            document.getElementById('orderButton').addEventListener('click', function () {
-                const checkboxes = document.querySelectorAll('input[name="menu"]');
-                let totalItems = [];
-                let totalPrice = 0;
+            document.getElementById('addMenuButton').addEventListener('click', function () {
+                const menuName = document.getElementById('menuName').value;
+                const menuPrice = document.getElementById('menuPrice').value;
+                const menuImage = document.getElementById('menuImage').value;
 
-                for (let key in selectedItems) {
-                    if (selectedItems[key].count > 0) {
-                        totalItems.push(`${selectedItems[key].name} x${selectedItems[key].count} (¥${selectedItems[key].price})`);
-                        totalPrice += selectedItems[key].count * selectedItems[key].price;
-                    }
-                }
+                if (menuName && menuPrice && menuImage) {
+                    const newMenuRef = push(menusRef);
+                    const menuData = { name: menuName, price: menuPrice, image: menuImage };
 
-                if (totalItems.length > 0) {
-                    const orderData = {
-                        items: totalItems,
-                        total: totalPrice,
-                        date: new Date().toLocaleString()
-                    };
-
-                    const ordersRef = ref(database, 'orders');
-                    push(ordersRef, orderData)
-                        .then(() => {
-                            alert("注文が確定しました！");
-                        })
-                        .catch((error) => {
-                            console.error("注文の保存中にエラーが発生しました: ", error);
-                            alert("注文の保存に失敗しました。もう一度お試しください。");
-                        });
+                    set(newMenuRef, menuData).then(() => {
+                        addMenuToPage(menuName, menuPrice, menuImage, newMenuRef.key, true);
+                        document.getElementById('menuName').value = '';
+                        document.getElementById('menuPrice').value = '';
+                        document.getElementById('menuImage').value = '';
+                    }).catch((error) => {
+                        console.error("メニューの保存中にエラーが発生しました: ", error);
+                        alert("メニューの保存に失敗しました。もう一度お試しください。");
+                    });
                 } else {
-                    alert("メニューを選択してください");
+                    alert("商品名、値段、画像URLを入力してください");
                 }
             });
 
@@ -142,7 +151,19 @@
             }
 
             function addMenuToPage(name, price, image, id, isAdmin) {
-                const newLabel = document.createElement('label');
+                const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+
+                const menuImageElement = document.createElement('img');
+                menuImageElement.src = image;
+                menuImageElement.alt = name;
+
+                const menuNameElement = document.createElement('p');
+                menuNameElement.textContent = name;
+
+                const menuPriceElement = document.createElement('p');
+                menuPriceElement.textContent = `¥${price}`;
+
                 const newCheckbox = document.createElement('input');
                 newCheckbox.type = 'checkbox';
                 newCheckbox.name = 'menu';
@@ -165,30 +186,23 @@
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = '削除';
                 deleteButton.type = 'button';
-                deleteButton.classList.add('deleteButton');
                 deleteButton.style.display = isAdmin ? 'inline' : 'none';
                 deleteButton.addEventListener('click', function () {
                     const menuRef = ref(database, `menus/${id}`);
                     set(menuRef, null).then(() => {
-                        menuContainer.removeChild(newLabel);
+                        menuContainer.removeChild(menuItem);
                     }).catch((error) => {
                         console.error("メニューの削除中にエラーが発生しました: ", error);
                     });
                 });
 
-                const menuImageElement = document.createElement('img');
-                menuImageElement.src = image;
-                menuImageElement.alt = name;
-                menuImageElement.style.width = '50px';
-                menuImageElement.style.height = '50px';
-                menuImageElement.style.marginRight = '10px';
+                menuItem.appendChild(menuImageElement);
+                menuItem.appendChild(menuNameElement);
+                menuItem.appendChild(menuPriceElement);
+                menuItem.appendChild(newCheckbox);
+                menuItem.appendChild(deleteButton);
 
-                newLabel.appendChild(menuImageElement);
-                newLabel.appendChild(newCheckbox);
-                newLabel.appendChild(document.createTextNode(`${name} (¥${price})`));
-                newLabel.appendChild(deleteButton);
-                menuContainer.appendChild(newLabel);
-                menuContainer.appendChild(document.createElement('br'));
+                menuContainer.appendChild(menuItem);
             }
         });
     </script>
@@ -217,8 +231,6 @@
         <h3>選択された商品</h3>
         <!-- 選択内容が動的に表示されます -->
     </div>
-
-    <br>
 
     <button id="orderButton">注文を確定</button>
 </body>

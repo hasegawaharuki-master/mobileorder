@@ -3,10 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>飲食店 - トップページ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: url('https://source.unsplash.com/1920x1080/?restaurant') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+        main {
+            margin-top: 50px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 20px 40px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .button-container .dine-in {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .button-container .take-out {
+            background-color: #ffc107;
+            color: #fff;
+        }
+
+        .button-container button:hover {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
 </head>
 <body>
-    <h1>テスト</h1>
-    <a href="test.html">注文はこちら</a>
+    <header>
+        <h1>Gourmet Haven</h1>
+    </header>
+    <main>
+        <div class="button-container">
+            <button class="dine-in" onclick="location.href='test.html'">店内飲食</button>
+            <button class="take-out">お持ち帰り</button>
+        </div>
+    </main>
+    <footer>
+        &copy; 2024 Gourmet Haven. All rights reserved.
+    </footer>
 </body>
 </html>

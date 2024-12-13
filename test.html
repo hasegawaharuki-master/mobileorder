@@ -35,9 +35,10 @@
             border: 1px solid #ccc;
             padding: 10px;
             width: 150px;
-            height: 250px;
+            height: 280px;
             background-color: #f9f9f9;
             box-sizing: border-box;
+            position: relative;
         }
 
         .menu-item img {
@@ -48,6 +49,11 @@
 
         .menu-item p {
             margin: 5px 0;
+        }
+
+        .menu-item .price {
+            font-size: 14px;
+            color: #555;
         }
 
         .menu-category {
@@ -70,6 +76,7 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+            margin-top: 10px;
         }
 
         .quantity-controls button {
@@ -205,7 +212,8 @@
             });
 
             function addMenuToCategory(category, name, price, image, id, tax, isAdmin) {
-                const container = category=== 'フード' ? foodContainer : category === 'ドリンク' ? drinkContainer : otherContainer;
+                const container = category === 'フード' ? foodContainer :
+                                  category === 'ドリンク' ? drinkContainer : otherContainer;
                 const menuItem = document.createElement('div');
                 menuItem.classList.add('menu-item');
 
@@ -217,7 +225,8 @@
                 menuNameElement.textContent = name;
 
                 const menuPriceElement = document.createElement('p');
-                menuPriceElement.textContent = `¥${price} (${tax}%)`;
+                menuPriceElement.classList.add('price');
+                menuPriceElement.textContent = `¥${price} (税込)`;
 
                 const quantityControls = document.createElement('div');
                 quantityControls.classList.add('quantity-controls');
@@ -233,7 +242,7 @@
                 });
 
                 const quantityDisplay = document.createElement('span');
-                quantityDisplay.textContent = '0';
+                quantityDisplay.textContent = selectedItems[id]?.count || '0';
 
                 const plusButton = document.createElement('button');
                 plusButton.textContent = '+';
@@ -285,9 +294,7 @@
                     }
 
                     selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
-
-                    // Update quantity display
-                    quantityDisplay.textContent = selectedItems[id] ? selectedItems[id].count : '0';
+                    quantityDisplay.textContent = selectedItems[id]?.count || '0';
                 }
             }
         });

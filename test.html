@@ -86,18 +86,20 @@
         }
 
       #orderButton {
-    position: relative; /* 親要素に対して相対位置 */
-    width: 100%; /* 幅を調整 */
-    height: auto; /* 高さを自動調整 */
+    position: fixed;
+    bottom: 20px; /* 画面の下端から20px */
+    right: 20px; /* 画面の右端から20px */
+    width: 100px; /* 横幅を100pxに設定 */
+    height: 100px; /* 高さを100pxに設定してほぼ正方形に */
     font-size: 1em; /* フォントサイズを調整 */
     background-color: #ff4500; /* 目立つオレンジ色 */
     color: #fff; /* 文字色を白に */
     border: none;
     border-radius: 10px; /* 角を丸く */
     cursor: pointer;
-    margin-top: 10px; /* 上部に余白を追加 */
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
+    z-index: 1000; /* 他の要素の上に表示 */
 }
 
 #orderButton:hover {
@@ -301,24 +303,49 @@
                 container.appendChild(menuItem);
 
                 function updateSelectedItems() {
-                    let totalQuantity = 0;
-                    let totalPrice = 0;
-                    selectedItemsContainer.innerHTML = '<h3>選択された商品</h3>';
+    let totalQuantity = 0;
+    let totalPrice = 0;
+    selectedItemsContainer.innerHTML = '<h3>選択された商品</h3>';
 
-                    for (let key in selectedItems) {
-                        if (selectedItems[key].count > 0) {
-                            const item = selectedItems[key];
-                            totalQuantity += item.count;
-                            totalPrice += item.count * item.price;
-                            selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
-                        }
-                    }
+    for (let key in selectedItems) {
+        if (selectedItems[key].count > 0) {
+            const item = selectedItems[key];
+            totalQuantity += item.count;
+            totalPrice += item.count * item.price;
+            selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
+        }
+    }
 
-                    selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
-                    quantityDisplay.textContent = selectedItems[id]?.count || '0';
-                }
-            }
+    selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
+
+    // 注文確定ボタンを再度追加
+    if (!document.getElementById('orderButton')) {
+        const orderButton = document.createElement('button');
+        orderButton.id = 'orderButton';
+        orderButton.textContent = '注文を確定';
+        orderButton.style.position = 'fixed';
+        orderButton.style.bottom = '20px';
+        orderButton.style.right = '20px';
+        orderButton.style.width = '100px';
+        orderButton.style.height = '100px';
+        orderButton.style.fontSize = '1em';
+        orderButton.style.backgroundColor = '#ff4500';
+        orderButton.style.color = '#fff';
+        orderButton.style.border = 'none';
+        orderButton.style.borderRadius = '10px';
+        orderButton.style.cursor = 'pointer';
+        orderButton.style.boxShadow = '3px 3px 10px rgba(0, 0, 0, 0.2)';
+        orderButton.style.transition = 'background-color 0.3s';
+        orderButton.style.zIndex = '1000';
+
+        orderButton.addEventListener('click', function () {
+            // ここに注文確定時の処理
         });
+
+        document.body.appendChild(orderButton);
+    }
+}
+
     </script>
 </head>
 <body>

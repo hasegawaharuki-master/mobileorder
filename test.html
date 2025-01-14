@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -102,7 +102,6 @@
             transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
         }
 
-
     #orderButton:hover {
     background-color: #e03e00; /* ホバー時に少し暗くする */
 }
@@ -133,6 +132,7 @@
             const passwordInput = document.getElementById('adminPassword');
             const loginButton = document.getElementById('loginButton');
             const selectedItemsContainer = document.getElementById('selectedItems');
+            const nicknameInput = document.getElementById('nickname'); // ニックネーム入力欄
 
             let selectedItems = {};
 
@@ -203,6 +203,12 @@
             document.getElementById('orderButton').addEventListener('click', function () {
                 let orderItems = [];
                 let totalPrice = 0;
+                const nickname = nicknameInput.value.trim();
+
+                if (!nickname) {
+                    alert("ニックネームを入力してください。");
+                    return;
+                }
 
                 for (let key in selectedItems) {
                     if (selectedItems[key].count > 0) {
@@ -214,6 +220,7 @@
 
                 if (orderItems.length > 0) {
                     const orderData = {
+                        nickname: nickname, // ニックネームを追加
                         items: orderItems,
                         total: totalPrice,
                         date: new Date().toLocaleString()
@@ -249,7 +256,7 @@
 
                 const menuPriceElement = document.createElement('p');
                 menuPriceElement.classList.add('price');
-                menuPriceElement.textContent = `¥${price} (税込)`;
+                menuPriceElement.textContent = `\u00a5${price} (税込)`;
 
                 const quantityControls = document.createElement('div');
                 quantityControls.classList.add('quantity-controls');
@@ -312,11 +319,11 @@
                             const item = selectedItems[key];
                             totalQuantity += item.count;
                             totalPrice += item.count * item.price;
-                            selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (¥${item.price * item.count})</p>`;
+                            selectedItemsContainer.innerHTML += `<p>${item.name} x${item.count} (\u00a5${item.price * item.count})</p>`;
                         }
                     }
 
-                    selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (¥${totalPrice})</p>`;
+                    selectedItemsContainer.innerHTML += `<hr><p>合計: ${totalQuantity}点 (\u00a5${totalPrice})</p>`;
                     quantityDisplay.textContent = selectedItems[id]?.count || '0';
                 }
             }
@@ -368,6 +375,7 @@
         <!-- 選択内容が動的に表示されます -->
     </div>
 
+    <input type="text" id="nickname" placeholder="ニックネームを入力してください">
     <button id="orderButton">注文を確定</button>
 </body>
 </html>

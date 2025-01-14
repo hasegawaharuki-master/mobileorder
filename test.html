@@ -96,9 +96,9 @@
         }
 
        #orderButton {
-            position: fixed;
-            bottom: 0px; /* 画面の下端に固定 */
-            right: 20px; /* 画面の右端から20px */
+            position:  static;
+            margin-top: 20px;
+            float: right;
             width: 200px; /* ボタンの幅を大きく */
             height: 80px; /* ボタンの高さを大きく */
             font-size: 1.5em; /* フォントサイズを大きく */
@@ -108,8 +108,6 @@
             border-radius: 10px; /* 角を丸く */
             cursor: pointer;
             box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000; /* 他の要素の上に表示 */
-            transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
         }
 
     #orderButton:hover {

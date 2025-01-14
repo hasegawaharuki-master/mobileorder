@@ -86,21 +86,21 @@
         }
 
        #orderButton {
-    position: absolute; /* fixedからabsoluteに変更 */
-    bottom: 10px; /* 選択された商品の欄より少し下に */
-    right: 20px; /* 画面の右端から20px */
-    width: 200px; /* ボタンの幅をそのままに */
-    height: 80px; /* ボタンの高さをそのままに */
-    font-size: 1.5em; /* フォントサイズをそのままに */
-    background-color: #ff4500; /* 目立つオレンジ色 */
-    color: #fff; /* 文字色を白に */
-    border: none;
-    border-radius: 10px; /* 角を丸く */
-    cursor: pointer;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* 他の要素の上に表示 */
-    transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
-}
+            position: fixed;
+            bottom: 0px; /* 画面の下端に固定 */
+            right: 20px; /* 画面の右端から20px */
+            width: 200px; /* ボタンの幅を大きく */
+            height: 80px; /* ボタンの高さを大きく */
+            font-size: 1.5em; /* フォントサイズを大きく */
+            background-color: #ff4500; /* 目立つオレンジ色 */
+            color: #fff; /* 文字色を白に */
+            border: none;
+            border-radius: 10px; /* 角を丸く */
+            cursor: pointer;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000; /* 他の要素の上に表示 */
+            transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
+        }
 
 
     #orderButton:hover {

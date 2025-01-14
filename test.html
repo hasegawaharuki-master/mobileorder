@@ -18,13 +18,22 @@
     z-index: 1000; /* 他の要素の上に表示 */
 }
 
+        #nickname {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
         #selectedItems {
             margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
             background-color: #f9f9f9;
         }
-
+            
         #selectedItems h3 {
             margin-top: 0;
         }
@@ -41,6 +50,7 @@
             box-sizing: border-box;
             position: relative;
         }
+
 
         .menu-item img {
             width: 100%;
@@ -370,12 +380,14 @@
         <div id="otherContainer" class="menu-container"></div>
     </div>
 
+<input type="text" id="nickname" placeholder="ニックネームを入力してください">
+    <button id="orderButton">注文を確定</button>
+        
     <div id="selectedItems">
         <h3>選択された商品</h3>
         <!-- 選択内容が動的に表示されます -->
     </div>
 
-    <input type="text" id="nickname" placeholder="ニックネームを入力してください">
-    <button id="orderButton">注文を確定</button>
+    
 </body>
 </html>

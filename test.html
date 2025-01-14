@@ -85,22 +85,23 @@
             height: 25px;
         }
 
-       #orderButton {
-            position: fixed;
-            bottom: 0px; /* 画面の下端に固定 */
-            right: 20px; /* 画面の右端から20px */
-            width: 200px; /* ボタンの幅を大きく */
-            height: 80px; /* ボタンの高さを大きく */
-            font-size: 1.5em; /* フォントサイズを大きく */
-            background-color: #ff4500; /* 目立つオレンジ色 */
-            color: #fff; /* 文字色を白に */
-            border: none;
-            border-radius: 10px; /* 角を丸く */
-            cursor: pointer;
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000; /* 他の要素の上に表示 */
-            transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
-        }
+      #orderButton {
+    position: absolute; /* absoluteを使用して親要素内で配置 */
+    bottom: 10px; /* 選択された商品の欄の少し下に配置 */
+    right: 20px; /* 右端からの距離を設定 */
+    width: 200px; /* 現在のボタンの幅を維持 */
+    height: 80px; /* 現在のボタンの高さを維持 */
+    font-size: 1.5em; /* フォントサイズを維持 */
+    background-color: #ff4500; /* 現在の背景色を維持 */
+    color: #fff; /* 現在の文字色を維持 */
+    border: none; /* 現在のボーダースタイルを維持 */
+    border-radius: 10px; /* 現在の角の丸みを維持 */
+    cursor: pointer; /* カーソルスタイルを維持 */
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2); /* 現在のシャドウを維持 */
+    z-index: 1000; /* 他の要素よりも上に表示 */
+    transition: background-color 0.3s; /* 現在のホバースタイルを維持 */
+}
+
 
 
     #orderButton:hover {
@@ -364,9 +365,11 @@
     </div>
 
     <div id="selectedItems">
-        <h3>選択された商品</h3>
-        <!-- 選択内容が動的に表示されます -->
-    </div>
+    <h3>選択された商品</h3>
+    <!-- 選択内容が動的に表示されます -->
+</div>
+
+<button id="orderButton">注文を確定</button>
 
     <button id="orderButton">注文を確定</button>
 </body>

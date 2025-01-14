@@ -85,27 +85,28 @@
             height: 25px;
         }
 
-      #orderButton {
-    position: fixed; /* 常に画面の下端に固定 */
-    bottom: 10px; /* 画面の下から10pxの位置 */
+       #orderButton {
+    position: absolute; /* fixedからabsoluteに変更 */
+    bottom: 10px; /* 選択された商品の欄よりも少し下に配置 */
     right: 20px; /* 画面の右端から20px */
-    width: 200px; /* ボタンの幅をそのままに */
-    height: 80px; /* ボタンの高さをそのままに */
-    font-size: 1.5em; /* フォントサイズをそのままに */
-    background-color: #ff4500; /* 目立つオレンジ色 */
-    color: #fff; /* 文字色を白に */
+    width: 200px;
+    height: 80px;
+    font-size: 1.5em;
+    background-color: #ff4500;
+    color: #fff;
     border: none;
-    border-radius: 10px; /* 角を丸く */
+    border-radius: 10px;
     cursor: pointer;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* 他の要素の上に表示 */
-    transition: background-color 0.3s; /* ホバー時の滑らかな変化 */
+    z-index: 1000;
+    transition: background-color 0.3s;
 }
 
 
 
-
-    
+    #orderButton:hover {
+    background-color: #e03e00; /* ホバー時に少し暗くする */
+}
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -126,29 +127,29 @@
         const database = getDatabase(app);
 
         document.addEventListener('DOMContentLoaded', function () {
-            const foodContainer = document.getElementById('foodContainer');
-            const drinkContainer = document.getElementById('drinkContainer');
-            const otherContainer = document.getElementById('otherContainer');
-            const adminSection = document.getElementById('adminSection');
-            const passwordInput = document.getElementById('adminPassword');
-            const loginButton = document.getElementById('loginButton');
-            const selectedItemsContainer = document.getElementById('selectedItems');
+    const orderButton = document.getElementById('orderButton');
+    const selectedItemsContainer = document.getElementById('selectedItems');
 
-            let selectedItems = {};
+    function updateOrderButtonPosition() {
+        const rect = selectedItemsContainer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const buffer = 10; // ボタンと選択された商品の欄の間のスペース
 
-            // ページロード時にメニューを読み込む
-            const menusRef = ref(database, 'menus');
-            get(menusRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const menus = snapshot.val();
-                    for (let id in menus) {
-                        const menu = menus[id];
-                        addMenuToCategory(menu.category, menu.name, menu.price, menu.image, id, menu.tax, false);
-                    }
-                }
-            }).catch((error) => {
-                console.error("メニューの読み込み中にエラーが発生しました: ", error);
-            });
+        if (rect.bottom + buffer < viewportHeight) {
+            orderButton.style.position = 'absolute';
+            orderButton.style.bottom = `${-buffer}px`;
+        } else {
+            orderButton.style.position = 'fixed';
+            orderButton.style.bottom = '10px';
+        }
+    }
+
+    window.addEventListener('scroll', updateOrderButtonPosition);
+    window.addEventListener('resize', updateOrderButtonPosition);
+
+    updateOrderButtonPosition(); // 初期位置の設定
+});
+
 
             loginButton.addEventListener('click', function () {
                 const password = passwordInput.value;
@@ -364,11 +365,9 @@
     </div>
 
     <div id="selectedItems">
-    <h3>選択された商品</h3>
-    <!-- 選択内容が動的に表示されます -->
-</div>
-
-<button id="orderButton">注文を確定</button>
+        <h3>選択された商品</h3>
+        <!-- 選択内容が動的に表示されます -->
+    </div>
 
     <button id="orderButton">注文を確定</button>
 </body>

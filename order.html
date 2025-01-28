@@ -31,6 +31,20 @@
             color: #333;
         }
 
+        .day-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            background-color: #ffffff;
+        }
+
+        .day-header {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
         .order {
             border-bottom: 1px solid #ccc;
             padding: 10px 0;
@@ -96,40 +110,71 @@
             const ordersContainer = document.getElementById("orders-container");
             const ordersRef = ref(database, "orders");
 
-            // 商品ごとの合計を管理
-            const monthlySummary = {};
+            // 月ごとの商品集計データを管理
+            let monthlySummary = {};
+
+            const updateSummary = (monthKey) => {
+                if (!monthlySummary[monthKey]) return "";
+
+                let summaryHTML = "<strong>今月の集計:</strong><br>";
+                Object.entries(monthlySummary[monthKey]).forEach(([itemName, data]) => {
+                    summaryHTML += `${itemName}: ${data.count}個 (¥${data.total})<br>`;
+                });
+
+                return summaryHTML;
+            };
+
+            const removeOrderFromSummary = (monthKey, items) => {
+                items.forEach(({ name, count, price }) => {
+                    if (monthlySummary[monthKey] && monthlySummary[monthKey][name]) {
+                        monthlySummary[monthKey][name].count -= count;
+                        monthlySummary[monthKey][name].total -= count * price;
+
+                        // 0以下になったら削除
+                        if (monthlySummary[monthKey][name].count <= 0) {
+                            delete monthlySummary[monthKey][name];
+                        }
+                    }
+                });
+            };
 
             // データの取得とリアルタイム更新
             onValue(ordersRef, (snapshot) => {
                 const orders = snapshot.val();
                 ordersContainer.innerHTML = ""; // 表示をリセット
+                monthlySummary = {}; // 集計データもリセット
 
                 if (orders) {
-                    // 注文データを月ごとに分類
+                    // 注文データを月と日付ごとに分類
                     const monthlyOrders = {};
                     Object.entries(orders).forEach(([id, order]) => {
                         const orderDate = new Date(order.date);
                         const monthKey = `${orderDate.getFullYear()}年${orderDate.getMonth() + 1}月`;
+                        const dayKey = `${orderDate.getFullYear()}年${orderDate.getMonth() + 1}月${orderDate.getDate()}日`;
 
                         if (!monthlyOrders[monthKey]) {
-                            monthlyOrders[monthKey] = [];
+                            monthlyOrders[monthKey] = {};
                         }
-                        monthlyOrders[monthKey].push({ id, ...order });
+                        if (!monthlyOrders[monthKey][dayKey]) {
+                            monthlyOrders[monthKey][dayKey] = [];
+                        }
+                        monthlyOrders[monthKey][dayKey].push({ id, ...order });
 
-                        // 月ごとの商品合計を計算
+                        // 商品ごとの集計を更新
                         if (!monthlySummary[monthKey]) {
                             monthlySummary[monthKey] = {};
                         }
                         order.items.forEach((item) => {
                             if (!monthlySummary[monthKey][item.name]) {
-                                monthlySummary[monthKey][item.name] = 0;
+                                monthlySummary[monthKey][item.name] = { count: 0, total: 0 };
                             }
-                            monthlySummary[monthKey][item.name] += item.count;
+                            monthlySummary[monthKey][item.name].count += item.count;
+                            monthlySummary[monthKey][item.name].total += item.count * item.price;
                         });
                     });
 
                     // 月ごとに表示
-                    Object.entries(monthlyOrders).forEach(([month, orders]) => {
+                    Object.entries(monthlyOrders).forEach(([month, days]) => {
                         const monthDiv = document.createElement("div");
                         monthDiv.classList.add("month-container");
 
@@ -138,58 +183,69 @@
                         monthHeader.textContent = month;
                         monthDiv.appendChild(monthHeader);
 
-                        // 注文ごとの表示
-                        orders.forEach((order) => {
-                            const orderDiv = document.createElement("div");
-                            orderDiv.classList.add("order");
+                        // 日付ごとに表示
+                        Object.entries(days).forEach(([day, orders]) => {
+                            const dayDiv = document.createElement("div");
+                            dayDiv.classList.add("day-container");
 
-                            const header = document.createElement("div");
-                            header.classList.add("order-header");
-                            header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
-                            orderDiv.appendChild(header);
+                            const dayHeader = document.createElement("div");
+                            dayHeader.classList.add("day-header");
+                            dayHeader.textContent = day;
+                            dayDiv.appendChild(dayHeader);
 
-                            // 商品一覧
-                            const itemsDiv = document.createElement("div");
-                            itemsDiv.classList.add("order-items");
-                            order.items.forEach((item) => {
-                                const itemDiv = document.createElement("div");
-                                itemDiv.textContent = `${item.name} x${item.count} (\u00a5${item.price * item.count})`;
-                                itemsDiv.appendChild(itemDiv);
+                            // 注文ごとの表示
+                            orders.forEach((order) => {
+                                const orderDiv = document.createElement("div");
+                                orderDiv.classList.add("order");
+
+                                const header = document.createElement("div");
+                                header.classList.add("order-header");
+                                header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+                                orderDiv.appendChild(header);
+
+                                // 商品一覧
+                                const itemsDiv = document.createElement("div");
+                                itemsDiv.classList.add("order-items");
+                                order.items.forEach((item) => {
+                                    const itemDiv = document.createElement("div");
+                                    itemDiv.textContent = `${item.name} x${item.count} (\u00a5${item.price * item.count})`;
+                                    itemsDiv.appendChild(itemDiv);
+                                });
+                                orderDiv.appendChild(itemsDiv);
+
+                                // 合計金額
+                                const totalDiv = document.createElement("div");
+                                totalDiv.classList.add("total");
+                                totalDiv.textContent = `合計金額: \u00a5${order.total}`;
+                                orderDiv.appendChild(totalDiv);
+
+                                // 削除ボタン
+                                const deleteButton = document.createElement("button");
+                                deleteButton.textContent = "削除";
+                                deleteButton.classList.add("delete-button");
+                                deleteButton.addEventListener("click", () => {
+                                    if (confirm("この注文を削除しますか？")) {
+                                        const orderRef = ref(database, `orders/${order.id}`);
+                                        removeOrderFromSummary(month, order.items);
+                                        remove(orderRef).then(() => {
+                                            alert("注文を削除しました。");
+                                        }).catch((error) => {
+                                            console.error("削除エラー: ", error);
+                                        });
+                                    }
+                                });
+                                orderDiv.appendChild(deleteButton);
+
+                                dayDiv.appendChild(orderDiv);
                             });
-                            orderDiv.appendChild(itemsDiv);
 
-                            // 合計金額
-                            const totalDiv = document.createElement("div");
-                            totalDiv.classList.add("total");
-                            totalDiv.textContent = `合計金額: \u00a5${order.total}`;
-                            orderDiv.appendChild(totalDiv);
-
-                            // 削除ボタン
-                            const deleteButton = document.createElement("button");
-                            deleteButton.textContent = "削除";
-                            deleteButton.classList.add("delete-button");
-                            deleteButton.addEventListener("click", () => {
-                                if (confirm("この注文を削除しますか？")) {
-                                    const orderRef = ref(database, `orders/${order.id}`);
-                                    remove(orderRef).then(() => {
-                                        alert("注文を削除しました。");
-                                    }).catch((error) => {
-                                        console.error("削除エラー: ", error);
-                                    });
-                                }
-                            });
-                            orderDiv.appendChild(deleteButton);
-
-                            monthDiv.appendChild(orderDiv);
+                            monthDiv.appendChild(dayDiv);
                         });
 
                         // 月ごとの商品合計を表示
                         const summaryDiv = document.createElement("div");
                         summaryDiv.classList.add("summary");
-                        summaryDiv.innerHTML = "<strong>今月の集計:</strong><br>";
-                        Object.entries(monthlySummary[month]).forEach(([itemName, count]) => {
-                            summaryDiv.innerHTML += `${itemName}: ${count}個<br>`;
-                        });
+                        summaryDiv.innerHTML = updateSummary(month);
                         monthDiv.appendChild(summaryDiv);
 
                         ordersContainer.appendChild(monthDiv);

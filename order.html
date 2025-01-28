@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注文内容表示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .order-container {
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .order {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .order:last-child {
+            border-bottom: none;
+        }
+
+        .order-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .order-items {
+            margin-left: 10px;
+        }
+
+        .total {
+            font-weight: bold;
+            color: #ff4500;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
+            authDomain: "test2-802ce.firebaseapp.com",
+            databaseURL: "https://test2-802ce-default-rtdb.firebaseio.com",
+            projectId: "test2-802ce",
+            storageBucket: "test2-802ce.appspot.com",
+            messagingSenderId: "624514936023",
+            appId: "1:624514936023:web:cbbd8f7a89450b86e8d492",
+            measurementId: "G-5H39DWSK3Y"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const ordersContainer = document.getElementById("orders-container");
+            const ordersRef = ref(database, "orders");
+
+            // データの取得とリアルタイム更新
+            onValue(ordersRef, (snapshot) => {
+                const orders = snapshot.val();
+                ordersContainer.innerHTML = ""; // 表示をリセット
+
+                if (orders) {
+                    Object.entries(orders).forEach(([id, order]) => {
+                        const orderDiv = document.createElement("div");
+                        orderDiv.classList.add("order");
+
+                        // 注文の基本情報
+                        const header = document.createElement("div");
+                        header.classList.add("order-header");
+                        header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+                        orderDiv.appendChild(header);
+
+                        // 商品一覧
+                        const itemsDiv = document.createElement("div");
+                        itemsDiv.classList.add("order-items");
+                        order.items.forEach((item) => {
+                            const itemDiv = document.createElement("div");
+                            itemDiv.textContent = `${item.name} x${item.count} (\u00a5${item.price * item.count})`;
+                            itemsDiv.appendChild(itemDiv);
+                        });
+                        orderDiv.appendChild(itemsDiv);
+
+                        // 合計金額
+                        const totalDiv = document.createElement("div");
+                        totalDiv.classList.add("total");
+                        totalDiv.textContent = `合計金額: \u00a5${order.total}`;
+                        orderDiv.appendChild(totalDiv);
+
+                        ordersContainer.appendChild(orderDiv);
+                    });
+                } else {
+                    ordersContainer.textContent = "現在、注文はありません。";
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>注文内容一覧</h1>
+    <div id="orders-container" class="order-container">
+        <!-- 注文内容がここに表示されます -->
+    </div>
+</body>
+</html>

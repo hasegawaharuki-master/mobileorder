@@ -240,12 +240,22 @@
 
                             orders.forEach((order) => {
                                 const orderDiv = document.createElement("div");
-                                orderDiv.classList.add("order");
+orderDiv.classList.add("order");
 
-                                const header = document.createElement("div");
-                                header.classList.add("order-header");
-                                header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
-                                orderDiv.appendChild(header);
+const header = document.createElement("div");
+header.classList.add("order-header");
+header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+orderDiv.appendChild(header);
+
+// 商品が準備できたボタン
+const readyButton = document.createElement("button");
+readyButton.textContent = "商品が準備できた";
+readyButton.classList.add("ready-button");
+readyButton.addEventListener("click", () => {
+    const orderRef = ref(database, `orders/${order.id}/status`);
+    set(orderRef, "商品ができました。受取所に取りに来てください。");
+});
+orderDiv.appendChild(readyButton);
 
                                 const itemsDiv = document.createElement("div");
                                 itemsDiv.classList.add("order-items");

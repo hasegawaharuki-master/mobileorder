@@ -241,20 +241,32 @@
                         date: new Date().toLocaleString()
                     };
 
-                    const ordersRef = ref(database, 'orders');
-                    push(ordersRef, orderData)
-                        .then(() => {
-                            alert("注文が確定しました！PayPayに移動します。");
-                            window.location.href = `paypay://pay?amount=${totalPrice}`;
-                        })
-                        .catch((error) => {
-                            console.error("注文の保存中にエラーが発生しました: ", error);
-                            alert("注文の保存に失敗しました。もう一度お試しください。");
-                        });
-                } else {
-                    alert("メニューを選択してください。");
+                    const ordersRef = ref(database, "orders");
+onValue(ordersRef, (snapshot) => {
+    if (snapshot.exists()) {
+        const orders = snapshot.val();
+        const statusContainer = document.getElementById("order-status");
+        statusContainer.innerHTML = "";
+
+        Object.values(orders).forEach(order => {
+            if (order.status) {
+                const statusDiv = document.createElement("div");
+                statusDiv.textContent = order.status;
+                statusContainer.appendChild(statusDiv);
+
+                if (order.status.includes("商品ができました")) {
+                    const payButton = document.createElement("button");
+                    payButton.textContent = "PayPayで支払う";
+                    payButton.addEventListener("click", () => {
+                        window.location.href = `paypay://pay?amount=${order.total}`;
+                    });
+                    statusContainer.appendChild(payButton);
                 }
-            });
+            }
+        });
+    }
+});
+
 
             function addMenuToCategory(category, name, price, image, id, tax, isAdmin) {
                 const container = category === 'フード' ? foodContainer :

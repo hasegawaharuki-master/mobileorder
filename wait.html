@@ -3,50 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>待機中のニックネーム</title>
+    <title>呼ばれた番号一覧</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        .nickname-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: inline-block;
+            text-align: left;
+        }
+        .nickname {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
+            apiKey: "AIzaSy...",
             authDomain: "test2-802ce.firebaseapp.com",
             databaseURL: "https://test2-802ce-default-rtdb.firebaseio.com",
             projectId: "test2-802ce",
             storageBucket: "test2-802ce.appspot.com",
             messagingSenderId: "624514936023",
-            appId: "1:624514936023:web:cbbd8f7a89450b86e8d492",
-            measurementId: "G-5H39DWSK3Y"
+            appId: "1:624514936023:web:cbbd8f7a89450b86e8d492"
         };
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        const waitingUsersRef = ref(database, "waiting_users");
+        const callRef = ref(database, "calledNumbers");
 
         document.addEventListener("DOMContentLoaded", () => {
-            const waitingContainer = document.getElementById("waiting-container");
+            const nicknameContainer = document.getElementById("nickname-container");
 
-            onValue(waitingUsersRef, (snapshot) => {
-                const users = snapshot.val();
-                waitingContainer.innerHTML = ""; // 一度クリア
+            onValue(callRef, (snapshot) => {
+                const calledData = snapshot.val();
+                nicknameContainer.innerHTML = "";
 
-                if (users) {
-                    Object.values(users).forEach(({ nickname }) => {
-                        const userDiv = document.createElement("div");
-                        userDiv.textContent = nickname;
-                        waitingContainer.appendChild(userDiv);
+                if (calledData) {
+                    Object.values(calledData).forEach(({ nickname }) => {
+                        const nicknameDiv = document.createElement("div");
+                        nicknameDiv.classList.add("nickname");
+                        nicknameDiv.textContent = `呼ばれた番号: ${nickname}`;
+                        nicknameContainer.appendChild(nicknameDiv);
                     });
                 } else {
-                    waitingContainer.textContent = "現在、待機中のニックネームはありません。";
+                    nicknameContainer.textContent = "現在、呼ばれた番号はありません。";
                 }
             });
         });
     </script>
 </head>
 <body>
-    <h1>待機中のニックネーム</h1>
-    <div id="waiting-container">
-        <!-- ここに待機中のニックネームが表示される -->
+    <h1>呼ばれた番号一覧</h1>
+    <div id="nickname-container" class="nickname-container">
+        <!-- 呼ばれた番号がここに表示されます -->
     </div>
 </body>
 </html>

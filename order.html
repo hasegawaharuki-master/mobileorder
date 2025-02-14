@@ -107,6 +107,21 @@
         .delete-button:hover {
             background-color: #e60000;
         }
+
+    .nickname-button {
+        padding: 5px 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+
+    .nickname-button:hover {
+        background-color: #45a049;
+    }
+
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -238,42 +253,63 @@
                             dayHeader.textContent = day;
                             dayDiv.appendChild(dayHeader);
 
-                            orders.forEach((order) => {
-                                const orderDiv = document.createElement("div");
-                                orderDiv.classList.add("order");
+                           orders.forEach((order) => {
+    const orderDiv = document.createElement("div");
+    orderDiv.classList.add("order");
 
-                                const header = document.createElement("div");
-                                header.classList.add("order-header");
-                                header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
-                                orderDiv.appendChild(header);
+    const header = document.createElement("div");
+    header.classList.add("order-header");
+    header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+    orderDiv.appendChild(header);
 
-                                const itemsDiv = document.createElement("div");
-                                itemsDiv.classList.add("order-items");
-                                order.items.forEach((item) => {
-                                    const itemDiv = document.createElement("div");
-                                    itemDiv.textContent = `${item.name} x${item.count} (¥${item.price * item.count})`;
-                                    itemsDiv.appendChild(itemDiv);
-                                });
-                                orderDiv.appendChild(itemsDiv);
+    const itemsDiv = document.createElement("div");
+    itemsDiv.classList.add("order-items");
+    order.items.forEach((item) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.textContent = `${item.name} x${item.count} (¥${item.price * item.count})`;
+        itemsDiv.appendChild(itemDiv);
+    });
+    orderDiv.appendChild(itemsDiv);
 
-                                const totalDiv = document.createElement("div");
-                                totalDiv.classList.add("total");
-                                totalDiv.textContent = `合計金額: ¥${order.total}`;
-                                orderDiv.appendChild(totalDiv);
+    const totalDiv = document.createElement("div");
+    totalDiv.classList.add("total");
+    totalDiv.textContent = `合計金額: ¥${order.total}`;
+    orderDiv.appendChild(totalDiv);
 
-                                const deleteButton = document.createElement("button");
-                                deleteButton.textContent = "この注文を削除";
-                                deleteButton.classList.add("delete-button");
-                                deleteButton.addEventListener("click", () => {
-                                    if (confirm("この注文を削除しますか？")) {
-                                        const orderRef = ref(database, `orders/${order.id}`);
-                                        remove(orderRef).catch((error) => console.error("削除エラー:", error));
-                                    }
-                                });
-                                orderDiv.appendChild(deleteButton);
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "この注文を削除";
+    deleteButton.classList.add("delete-button");
+    deleteButton.addEventListener("click", () => {
+        if (confirm("この注文を削除しますか？")) {
+            const orderRef = ref(database, `orders/${order.id}`);
+            remove(orderRef).catch((error) => console.error("削除エラー:", error));
+        }
+    });
+    orderDiv.appendChild(deleteButton);
 
-                                dayDiv.appendChild(orderDiv);
-                            });
+    // ここで新しいボタンを追加
+    const nicknameButton = document.createElement("button");
+    nicknameButton.textContent = `番号を表示する`;
+    nicknameButton.classList.add("nickname-button");
+    nicknameButton.addEventListener("click", () => {
+        const waitRef = ref(database, "waitlist/" + order.id);
+        onValue(waitRef, (snapshot) => {
+            if (snapshot.exists()) {
+                // すでに表示されている場合は削除
+                remove(waitRef);
+            } else {
+                // 新しく番号を追加
+                set(waitRef, {
+                    nickname: order.nickname,
+                    number: order.id
+                });
+            }
+        });
+    });
+    orderDiv.appendChild(nicknameButton); // 新しいボタンを orderDiv に追加
+
+    dayDiv.appendChild(orderDiv);
+});
 
                             const todaySummaryDiv = document.createElement("div");
                             todaySummaryDiv.classList.add("summary");
@@ -299,6 +335,7 @@
                 }
             });
         });
+       
     </script>
 </head>
 <body>

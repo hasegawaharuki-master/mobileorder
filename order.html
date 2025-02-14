@@ -243,9 +243,25 @@
                                 orderDiv.classList.add("order");
 
                                 const header = document.createElement("div");
-                                header.classList.add("order-header");
-                                header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
-                                orderDiv.appendChild(header);
+header.classList.add("order-header");
+
+// チェックボックスを作成
+const checkbox = document.createElement("input");
+checkbox.type = "checkbox";
+checkbox.id = `order-${order.id}`;
+checkbox.name = "order-checkbox";
+checkbox.value = order.id;
+
+// ラベルを作成
+const label = document.createElement("label");
+label.htmlFor = `order-${order.id}`;
+label.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+
+// チェックボックスとラベルを追加
+header.appendChild(checkbox);
+header.appendChild(label);
+
+orderDiv.appendChild(header);
 
                                 const itemsDiv = document.createElement("div");
                                 itemsDiv.classList.add("order-items");

@@ -107,25 +107,10 @@
         .delete-button:hover {
             background-color: #e60000;
         }
-
-    .nickname-button {
-        padding: 5px 10px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-
-    .nickname-button:hover {
-        background-color: #45a049;
-    }
-
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
@@ -253,63 +238,55 @@
                             dayHeader.textContent = day;
                             dayDiv.appendChild(dayHeader);
 
-                           orders.forEach((order) => {
-    const orderDiv = document.createElement("div");
-    orderDiv.classList.add("order");
+                            orders.forEach((order) => {
+                                const orderDiv = document.createElement("div");
+                                orderDiv.classList.add("order");
 
-    const header = document.createElement("div");
-    header.classList.add("order-header");
-    header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
-    orderDiv.appendChild(header);
+                                const header = document.createElement("div");
+                                header.classList.add("order-header");
+                                header.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
+                                orderDiv.appendChild(header);
 
-    const itemsDiv = document.createElement("div");
-    itemsDiv.classList.add("order-items");
-    order.items.forEach((item) => {
-        const itemDiv = document.createElement("div");
-        itemDiv.textContent = `${item.name} x${item.count} (¥${item.price * item.count})`;
-        itemsDiv.appendChild(itemDiv);
-    });
-    orderDiv.appendChild(itemsDiv);
+                                const itemsDiv = document.createElement("div");
+                                itemsDiv.classList.add("order-items");
+                                order.items.forEach((item) => {
+                                    const itemDiv = document.createElement("div");
+                                    itemDiv.textContent = `${item.name} x${item.count} (¥${item.price * item.count})`;
+                                    itemsDiv.appendChild(itemDiv);
+                                });
+                                orderDiv.appendChild(itemsDiv);
 
-    const totalDiv = document.createElement("div");
-    totalDiv.classList.add("total");
-    totalDiv.textContent = `合計金額: ¥${order.total}`;
-    orderDiv.appendChild(totalDiv);
+                                const totalDiv = document.createElement("div");
+                                totalDiv.classList.add("total");
+                                totalDiv.textContent = `合計金額: ¥${order.total}`;
+                                orderDiv.appendChild(totalDiv);
 
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "この注文を削除";
-    deleteButton.classList.add("delete-button");
-    deleteButton.addEventListener("click", () => {
-        if (confirm("この注文を削除しますか？")) {
-            const orderRef = ref(database, `orders/${order.id}`);
-            remove(orderRef).catch((error) => console.error("削除エラー:", error));
-        }
-    });
-    orderDiv.appendChild(deleteButton);
+                                const deleteButton = document.createElement("button");
+                                deleteButton.textContent = "この注文を削除";
+                                deleteButton.classList.add("delete-button");
+                                deleteButton.addEventListener("click", () => {
+                                    if (confirm("この注文を削除しますか？")) {
+                                        const orderRef = ref(database, `orders/${order.id}`);
+                                        remove(orderRef).catch((error) => console.error("削除エラー:", error));
+                                    }
+                                });
+                                orderDiv.appendChild(deleteButton);
 
-    // ここで新しいボタンを追加
-    const nicknameButton = document.createElement("button");
-    nicknameButton.textContent = `番号を表示する`;
-    nicknameButton.classList.add("nickname-button");
-    nicknameButton.addEventListener("click", () => {
-        const waitRef = ref(database, "waitlist/" + order.id);
-        onValue(waitRef, (snapshot) => {
-            if (snapshot.exists()) {
-                // すでに表示されている場合は削除
-                remove(waitRef);
-            } else {
-                // 新しく番号を追加
-                set(waitRef, {
-                    nickname: order.nickname,
-                    number: order.id
-                });
-            }
-        });
-    });
-    orderDiv.appendChild(nicknameButton); // 新しいボタンを orderDiv に追加
+                                // チェックボックスを追加
+                                const checkbox = document.createElement("input");
+                                checkbox.type = "checkbox";
+                                checkbox.id = `nickname-checkbox-${order.id}`;
+                                orderDiv.appendChild(checkbox);
 
-    dayDiv.appendChild(orderDiv);
-});
+                                // チェックボックスの状態を Firebase に保存する
+                                checkbox.addEventListener("change", () => {
+                                    const orderRef = ref(database, `orders/${order.id}/nicknameStatus`);
+                                    set(orderRef, { nickname: order.nickname, checked: checkbox.checked })
+                                        .catch((error) => console.error("エラー:", error));
+                                });
+
+                                dayDiv.appendChild(orderDiv);
+                            });
 
                             const todaySummaryDiv = document.createElement("div");
                             todaySummaryDiv.classList.add("summary");
@@ -335,26 +312,6 @@
                 }
             });
         });
-       // ボタンを押したときの処理
-document.getElementById("add-waitlist-button").addEventListener("click", () => {
-    const nickname = document.getElementById("nickname").value; // ニックネームの取得
-    const number = document.getElementById("number").value; // 番号の取得
-
-    if (nickname && number) {
-        const newWaitlistRef = push(ref(database, "waitlist"));
-        set(newWaitlistRef, {
-            nickname: nickname,
-            number: number
-        }).then(() => {
-            alert("待機リストに追加されました！");
-        }).catch((error) => {
-            console.error("待機リストへの追加に失敗しました:", error);
-        });
-    } else {
-        alert("ニックネームと番号を入力してください。");
-    }
-});
-
     </script>
 </head>
 <body>
@@ -363,4 +320,4 @@ document.getElementById("add-waitlist-button").addEventListener("click", () => {
         <!-- 注文内容がここに表示されます -->
     </div>
 </body>
-</html><!DOCTYPE html>
+</html>

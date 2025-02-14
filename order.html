@@ -110,7 +110,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBi4R5J3DfW8xBXbM9cjSmQ_Ycwlzr76W4",
@@ -271,19 +271,6 @@
                                     }
                                 });
                                 orderDiv.appendChild(deleteButton);
-
-                                // チェックボックスを追加
-                                const checkbox = document.createElement("input");
-                                checkbox.type = "checkbox";
-                                checkbox.id = `nickname-checkbox-${order.id}`;
-                                orderDiv.appendChild(checkbox);
-
-                                // チェックボックスの状態を Firebase に保存する
-                                checkbox.addEventListener("change", () => {
-                                    const orderRef = ref(database, `orders/${order.id}/nicknameStatus`);
-                                    set(orderRef, { nickname: order.nickname, checked: checkbox.checked })
-                                        .catch((error) => console.error("エラー:", error));
-                                });
 
                                 dayDiv.appendChild(orderDiv);
                             });

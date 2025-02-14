@@ -154,6 +154,16 @@
                 });
             };
 
+            function updateWaitingUsers(orderId, nickname, isChecked) {
+    const userRef = ref(database, `waiting_users/${orderId}`);
+
+    if (isChecked) {
+        set(userRef, { nickname: nickname }).catch((error) => console.error("追加エラー:", error));
+    } else {
+        remove(userRef).catch((error) => console.error("削除エラー:", error));
+    }
+}
+
             onValue(ordersRef, (snapshot) => {
                 const orders = snapshot.val();
                 ordersContainer.innerHTML = "";
@@ -243,24 +253,27 @@
                                 orderDiv.classList.add("order");
 
                                 const header = document.createElement("div");
+const header = document.createElement("div");
 header.classList.add("order-header");
 
 // チェックボックスを作成
 const checkbox = document.createElement("input");
 checkbox.type = "checkbox";
-checkbox.id = `order-${order.id}`;
-checkbox.name = "order-checkbox";
-checkbox.value = order.id;
+checkbox.id = `order-${id}`;
+checkbox.value = id;
 
 // ラベルを作成
 const label = document.createElement("label");
-label.htmlFor = `order-${order.id}`;
+label.htmlFor = `order-${id}`;
 label.textContent = `ニックネーム: ${order.nickname} / 注文日時: ${order.date}`;
 
-// チェックボックスとラベルを追加
+// チェックボックスのイベントを設定
+checkbox.addEventListener("change", () => {
+    updateWaitingUsers(id, order.nickname, checkbox.checked);
+});
+
 header.appendChild(checkbox);
 header.appendChild(label);
-
 orderDiv.appendChild(header);
 
                                 const itemsDiv = document.createElement("div");
